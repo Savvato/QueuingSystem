@@ -43,11 +43,7 @@ public class Application
         long averageTime = this.queuingSystem.calculateAverageTimeInSystem();
         System.out.println("Average time of requests in system: " + averageTime + " ms");
         System.out.println("Requests serviced: " + this.queuingSystem.sink.size());
-        for (Request request: this.queuingSystem.sink) {
-            System.out.println("============================");
-            System.out.println("Time in system: " + request.getTimeInSystem());
-            System.out.println("Start time: " + request.getStartTime().getTime());
-            System.out.println("Finish time: " + request.getFinishTime().getTime());
-        }
+        System.out.println("============================");
+        System.out.println("Requests in queue: " + this.queuingSystem.queue.size());
     }
 }

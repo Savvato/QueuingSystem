@@ -2,7 +2,7 @@ package main;
 
 import java.util.Date;
 
-public class Request
+public class Request implements Comparable
 {
     private Date startTime;
     private Date finishTime;
@@ -25,5 +25,10 @@ public class Request
 
     public Date getFinishTime() {
         return finishTime;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return 0;
     }
 }

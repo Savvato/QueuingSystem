@@ -29,7 +29,7 @@ public class ServiceChannel extends Thread
                 try {
                     this.sleep(serviceTime);
                 }
-                catch (InterruptedException e) {
+                catch (Exception e) {
                     e.printStackTrace();
                 }
                 request.finish();

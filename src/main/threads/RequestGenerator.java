@@ -9,8 +9,9 @@ public class RequestGenerator extends Thread
 {
     private final Random random = new Random();
 
-    private final int averageTimeInterval = 50;
-    private final int averageVariation = 10;
+    private final int averageTimeInterval = 10;
+
+    private final int averageVariation = 3;
 
     private QueuingSystem queuingSystem;
 
@@ -34,7 +35,7 @@ public class RequestGenerator extends Thread
                 this.queuingSystem.queue.offer(request);
             }
             catch (InterruptedException e) {
-                e = null;
+                e.printStackTrace();
             }
         }
     }

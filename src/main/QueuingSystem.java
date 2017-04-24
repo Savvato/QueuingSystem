@@ -11,7 +11,9 @@ public class QueuingSystem extends Thread
     /**
      * Очередь заявок
      */
-    public PriorityQueue<Request> queue = new PriorityQueue<Request>();
+    public PriorityQueue<Request> queue;
+
+    public ArrayList<Request> sink;
 
     /**
      * Генератор заявок
@@ -33,8 +35,6 @@ public class QueuingSystem extends Thread
      */
     private long serviceTime;
 
-    public ArrayList<Request> sink;
-
     /**
      * Конструктор системы
      *
@@ -50,6 +50,7 @@ public class QueuingSystem extends Thread
      * Инициализация системы массового обслуживания
      */
     private void init() {
+        this.queue = new PriorityQueue<>(100);
         this.sink = new ArrayList<Request>();
         this.requestGenerator = new RequestGenerator(this);
         this.serviceChannels = new ServiceChannel[this.serviceChannelsCount];
@@ -68,7 +69,7 @@ public class QueuingSystem extends Thread
         try {
             this.sleep(10000);
         }
-        catch (InterruptedException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
 
