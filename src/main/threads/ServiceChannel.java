@@ -1,42 +1,60 @@
 package main.threads;
 
-import main.QueuingSystem;
 import main.Request;
+
+import java.util.Random;
 
 public class ServiceChannel extends Thread
 {
-    private QueuingSystem queuingSystem;
+    public boolean isBusy = false;
 
-    private long serviceTime;
+    public long endServicingTimeOfCurrentRequest;
 
-    /**
-     * ServiceChanel constructor
-     *
-     * @param queuingSystem
-     */
-    public ServiceChannel(QueuingSystem queuingSystem, long serviceTime) {
-        this.queuingSystem = queuingSystem;
-        this.serviceTime = serviceTime;
+    private long averageServiceTime;
+
+    private long averageVariation;
+
+    private Random random;
+
+    public ServiceChannel(long averageServiceTime) {
+        this.averageServiceTime = averageServiceTime;
+        this.init();
     }
 
-    public void run() {
-        while (!this.isInterrupted()) {
-            Request request;
-            synchronized (this.queuingSystem.queue) {
-                request = this.queuingSystem.queue.poll();
-            }
-            if (request != null) {
-                try {
-                    this.sleep(serviceTime);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                request.finish();
-                synchronized (this.queuingSystem.sink) {
-                    this.queuingSystem.sink.add(request);
-                }
-            }
+    private void init() {
+        this.averageVariation = (long) Math.sqrt(this.averageServiceTime);
+        this.random = new Random();
+    }
+
+    public void handleMoment(Request request, long moment) {
+        if (!this.isBusy) {
+            this.setBusy(moment);
+            request.setEndQueueTime(moment);
+            request.setStartServiceTime(moment);
+            request.setFinishServiceTime(this.endServicingTimeOfCurrentRequest);
+        }
+    }
+
+    private void setBusy(long moment) {
+        this.isBusy = true;
+        this.endServicingTimeOfCurrentRequest = moment + this.getServiceTime();
+    }
+
+    private long getServiceTime() {
+        long number = (long) this.random.nextGaussian() + this.averageServiceTime;
+        long variation = (long) this.random.nextGaussian() * this.averageVariation;
+        number += variation;
+        return number > 0 ? number : -number;
+    }
+
+    /**
+     * Проверка занятости канала
+     *
+     * @param moment
+     */
+    public void checkBusy(long moment) {
+        if (moment == this.endServicingTimeOfCurrentRequest) {
+            this.isBusy = false;
         }
     }
 }

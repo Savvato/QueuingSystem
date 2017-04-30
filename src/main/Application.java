@@ -10,9 +10,14 @@ public class Application
     private int serviceChannelsCount;
 
     /**
+     * Средний интервал времени между прибытиями заявок
+     */
+    private long averageRequestIncomingTimeInterval;
+
+    /**
      * Среднее время обслуживания
      */
-    private long serviceTime;
+    private long averageServiceTime;
 
     private QueuingSystem queuingSystem;
 
@@ -23,20 +28,22 @@ public class Application
 
     public void run() throws InterruptedException {
         this.readInputData();
-        this.queuingSystem = new QueuingSystem(this.serviceChannelsCount, this.serviceTime);
-        this.queuingSystem.start();
-        this.queuingSystem.join();
+        this.queuingSystem = new QueuingSystem(this.averageRequestIncomingTimeInterval, this.serviceChannelsCount, this.averageServiceTime);
+        this.queuingSystem.run();
         this.printOutData();
     }
 
     private void readInputData() {
         Scanner scanner = new Scanner(System.in);
 
+        System.out.println("Enter average request incoming time interval:");
+        this.averageRequestIncomingTimeInterval = scanner.nextLong();
+
         System.out.println("Enter count of service channels:");
         this.serviceChannelsCount = scanner.nextInt();
 
-        System.out.println("Enter service time:");
-        this.serviceTime = scanner.nextLong();
+        System.out.println("Enter average service time:");
+        this.averageServiceTime = scanner.nextLong();
     }
 
     private void printOutData() {

@@ -5,38 +5,39 @@ import main.Request;
 
 import java.util.Random;
 
-public class RequestGenerator extends Thread
+public class RequestGenerator
 {
+    private static final int REQUESTS_CONT = 1000;
+
     private final Random random = new Random();
 
-    private final int averageTimeInterval = 10;
+    private final long averageTimeInterval;
 
-    private final int averageVariation = 3;
+    private final long averageVariation;
+
+    private long internalVirtualTime = 0;
 
     private QueuingSystem queuingSystem;
 
     /**
      * RequestGenerator constructor
      *
-     * @param queuingSystem
+     * @param queuingSystem CMO
      */
     public RequestGenerator(QueuingSystem queuingSystem) {
-        super("RequestGeneratorThread");
         this.queuingSystem = queuingSystem;
+        this.averageTimeInterval = this.queuingSystem.averageRequestIncomingTimeInterval;
+        this.averageVariation = (long) Math.sqrt(this.averageTimeInterval);
+
     }
 
-    @Override
     public void run() {
-        while (!this.isInterrupted()) {
-            try {
-                this.sleep(this.getTimeInterval());
-                Request request = new Request();
-                request.start();
-                this.queuingSystem.queue.offer(request);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        for (int index = 1; index <= REQUESTS_CONT; index++) {
+            long timeInterval = this.getTimeInterval();
+            Request request = new Request();
+            request.setStartQueueTime(this.internalVirtualTime + timeInterval);
+            queuingSystem.queue.offer(request);
+            this.internalVirtualTime += timeInterval;
         }
     }
 

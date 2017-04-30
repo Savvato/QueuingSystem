@@ -6,14 +6,22 @@ import main.threads.ServiceChannel;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-public class QueuingSystem extends Thread
+public class QueuingSystem
 {
     /**
      * Очередь заявок
      */
     public PriorityQueue<Request> queue;
 
+    /**
+     * Сток, массив обработанныъ заявок
+     */
     public ArrayList<Request> sink;
+
+    /**
+     * Средний интервал времени между прибытиями заявок
+     */
+    public long averageRequestIncomingTimeInterval;
 
     /**
      * Генератор заявок
@@ -33,16 +41,17 @@ public class QueuingSystem extends Thread
     /**
      * Среднее время обслуживания
      */
-    private long serviceTime;
+    private long averageServiceTime;
 
     /**
      * Конструктор системы
      *
      * @param serviceChannelsCount Количество каналов обслуживания
      */
-    public QueuingSystem(int serviceChannelsCount, long serviceTime) {
+    public QueuingSystem(long averageRequestIncomingTimeInterval, int serviceChannelsCount, long averageServiceTime) {
+        this.averageRequestIncomingTimeInterval = averageRequestIncomingTimeInterval;
         this.serviceChannelsCount = serviceChannelsCount;
-        this.serviceTime = serviceTime;
+        this.averageServiceTime = averageServiceTime;
         this.init();
     }
 
@@ -55,29 +64,43 @@ public class QueuingSystem extends Thread
         this.requestGenerator = new RequestGenerator(this);
         this.serviceChannels = new ServiceChannel[this.serviceChannelsCount];
         for (int index = 0; index < this.serviceChannels.length; index++) {
-            this.serviceChannels[index] = new ServiceChannel(this, this.serviceTime);
+            this.serviceChannels[index] = new ServiceChannel(this.averageServiceTime);
         }
     }
 
-
     public void run() {
-        this.requestGenerator.start();
+        this.requestGenerator.run();
+        long moment = 0;
+
+        while (this.queue.peek() != null) {
+            Request request = this.queue.peek();
+            if (request.getStartQueueTime() <= moment) {
+                ServiceChannel serviceChannel = this.getNotBusyServiceChannel();
+                if (serviceChannel != null) {
+                    request = this.queue.poll();
+                    serviceChannel.handleMoment(request, moment);
+                    this.sink.add(request);
+                }
+            }
+            for (ServiceChannel serviceChannel : this.serviceChannels) {
+                serviceChannel.checkBusy(moment);
+            }
+            moment++;
+        }
+    }
+
+    /**
+     * Поиск незанятого канала обслуживания
+     *
+     * @return Канал обслуживания
+     */
+    private ServiceChannel getNotBusyServiceChannel() {
         for (ServiceChannel serviceChannel: this.serviceChannels) {
-            serviceChannel.start();
+            if (!serviceChannel.isBusy) {
+                return serviceChannel;
+            }
         }
-
-        try {
-            this.sleep(10000);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        this.requestGenerator.interrupt();
-        for (ServiceChannel serviceChannel: this.serviceChannels) {
-            serviceChannel.interrupt();
-        }
-
+        return null;
     }
 
     /**
@@ -86,7 +109,7 @@ public class QueuingSystem extends Thread
      * @return
      */
     public long calculateAverageTimeInSystem() {
-        if (this.sink.size() == 0){
+        if (this.sink.size() == 0) {
             return 0;
         }
         long sumTimeForRequests = 0;
@@ -95,4 +118,5 @@ public class QueuingSystem extends Thread
         }
         return sumTimeForRequests / this.sink.size();
     }
+
 }
