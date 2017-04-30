@@ -1,17 +1,17 @@
 package main;
 
-import main.threads.RequestGenerator;
-import main.threads.ServiceChannel;
+import main.parts.RequestGenerator;
+import main.parts.ServiceChannel;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.PriorityQueue;
 
 public class QueuingSystem
 {
     /**
      * Очередь заявок
      */
-    public PriorityQueue<Request> queue;
+    public ArrayDeque<Request> queue;
 
     /**
      * Сток, массив обработанныъ заявок
@@ -59,7 +59,7 @@ public class QueuingSystem
      * Инициализация системы массового обслуживания
      */
     private void init() {
-        this.queue = new PriorityQueue<>(100);
+        this.queue = new ArrayDeque<Request>();
         this.sink = new ArrayList<Request>();
         this.requestGenerator = new RequestGenerator(this);
         this.serviceChannels = new ServiceChannel[this.serviceChannelsCount];
@@ -72,12 +72,12 @@ public class QueuingSystem
         this.requestGenerator.run();
         long moment = 0;
 
-        while (this.queue.peek() != null) {
-            Request request = this.queue.peek();
+        while (this.queue.peekFirst() != null) {
+            Request request = this.queue.peekFirst();
             if (request.getStartQueueTime() <= moment) {
                 ServiceChannel serviceChannel = this.getNotBusyServiceChannel();
                 if (serviceChannel != null) {
-                    request = this.queue.poll();
+                    request = this.queue.pop();
                     serviceChannel.handleMoment(request, moment);
                     this.sink.add(request);
                 }
@@ -114,6 +114,7 @@ public class QueuingSystem
         }
         long sumTimeForRequests = 0;
         for (Request request : this.sink) {
+            request.log();
             sumTimeForRequests += request.getTimeInSystem();
         }
         return sumTimeForRequests / this.sink.size();

@@ -56,4 +56,13 @@ public class Request implements Comparable<Request>
     public long getTimeInSystem() {
         return this.finishServiceTime - this.startQueueTime;
     }
+
+    public void log() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder
+                .append("SQ: " + this.startQueueTime)
+                .append(" SS: " + this.startServiceTime)
+                .append(" FS: " + this.finishServiceTime);
+        System.out.println(stringBuilder.toString());
+    }
 }

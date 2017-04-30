@@ -1,4 +1,4 @@
-package main.threads;
+package main.parts;
 
 import main.QueuingSystem;
 import main.Request;
